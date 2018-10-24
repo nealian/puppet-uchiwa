@@ -104,8 +104,8 @@
           <%- else -%>
           "<%= k %>": "<%= v %>"<%= ',' if kv_idx != (@ldap['servers'].size - 1) %>
           <%- end -%>
-        }<%= ',' if servers_idx != (@ldap['servers'].size - 1) %>
         <%- end -%><%-# server.each |(k,v)| -%>
+        }<%= ',' if servers_idx != (@ldap['servers'].size - 1) %>
         <%- end -%><%-# servers.each |server| -%>
       <%- else -%>
         {

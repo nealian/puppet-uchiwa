@@ -172,10 +172,10 @@ describe 'uchiwa' do
   end
 
   context 'with multiple users' do
-    let(:params) {{ :users => [ { 'username' => 'user1', 'password' => 'pass1', 'readonly' => true } ] }}
+    let(:params) {{ :users => [ { 'username' => 'user1', 'password' => 'pass1', 'readonly' => true }, { 'username' => 'user2', 'password' => 'pass2', 'readonly' => false } ] }}
     it {
       should contain_file('/etc/sensu/uchiwa.json') \
-        .with_content(/"username": "user1",\n        "password": "pass1",\n        "role": {\n          "readonly": true\n        }\n      }/)
+        .with_content(/"username": "user1",\n        "password": "pass1",\n        "role": {\n          "readonly": true\n        }\n      },\n      {\n        "username": "user2",\n        "password": "pass2",\n        "role": {\n          "readonly": false\n        }\n      }/)
     }
   end
 
@@ -183,7 +183,7 @@ describe 'uchiwa' do
     let(:params) {{ :auth => { 'publickey' => '/etc/sensu/uchiwa.rsa.pub', 'privatekey' => '/etc/sensu/uchiwa.rsa' } }}
     it {
       should contain_file('/etc/sensu/uchiwa.json') \
-      .with_content(/"auth": {\n      "publickey": "\/etc\/sensu\/uchiwa.rsa.pub",\n      "privatekey": "\/etc\/sensu\/uchiwa.rsa"\n    }/)
+        .with_content(/"auth": {\n      "publickey": "\/etc\/sensu\/uchiwa.rsa.pub",\n      "privatekey": "\/etc\/sensu\/uchiwa.rsa"\n    }/)
     }
   end
 
@@ -201,6 +201,22 @@ describe 'uchiwa' do
     it {
       should contain_file('/etc/sensu/uchiwa.json') \
         .with_content(/"loglevel": "debug"/)
+    }
+  end
+
+  context 'with simple ldap auth options' do
+    let(:params) {{ :ldap => { 'server' => 'localhost' } }}
+    it {
+      should contain_file('/etc/sensu/uchiwa.json') \
+        .with_content(/"ldap": {\n      "servers": \[\n        {\n          "server": "localhost"\n        }\n      \]\n    }/)
+    }
+  end
+
+  context 'with complicated ldap auth options' do
+    let(:params) {{ :ldap => { 'servers' => [{ 'server' => 'localhost' }], 'roles' => [{ 'name' => 'guests', 'members' => ['datacenter_guests'], 'readonly' => true }], 'debug' => true} }}
+    it {
+      should contain_file('/etc/sensu/uchiwa.json') \
+        .with_content(/"ldap": {\n      "debug": true,\n      "roles": \[\n        {\n          "name": "guests",\n          "members": \[\n            "datacenter_guests"\n          \],\n          "readonly": true\n        }\n      \],\n      "servers": \[\n        {\n          "server": "localhost"\n        }\n      \]\n    }/)
     }
   end
 

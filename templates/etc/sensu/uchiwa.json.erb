@@ -1,5 +1,5 @@
 {
-"sensu": [
+  "sensu": [
   <%-
   default_endpoint = scope['uchiwa::params::sensu_api_endpoints'][0]
   @sensu_api_endpoints.each_with_index do |endpoint, i|
@@ -30,7 +30,7 @@
     "loglevel": "<%= @log_level %>",
     "user": "<%= @user %>",
     "pass": "<%= @pass %>",
-    "refresh": <%= @refresh %><%= ',' if @users.size > 0 or @auth.size == 2  or @ssl.size == 2 or @usersoptions.size > 0 %>
+    "refresh": <%= @refresh %><%= ',' if @users.size > 0 or @auth.size == 2  or @ssl.size == 2 or @usersoptions.size > 0 or @ldap.size > 0 %>
     <%- if @users.size > 0 -%>
     "users": [
     <%- @users.each_with_index do |user, i| -%>
@@ -42,19 +42,19 @@
         }
       }<%= ',' if i < (@users.size - 1) %>
     <%- end -%>
-    ]<%= ',' if @auth.size == 2  or @ssl.size == 2 or @usersoptions.size > 0 %>
+    ]<%= ',' if @auth.size == 2  or @ssl.size == 2 or @usersoptions.size > 0 or @ldap.size > 0 %>
   <%- end -%>
   <%- if @auth.size == 2 -%>
     "auth": {
       "publickey": "<%= @auth['publickey']  %>",
       "privatekey": "<%= @auth['privatekey']  %>"
-    }<%= ',' if @ssl.size == 2 || @usersoptions.size > 0 %>
+    }<%= ',' if @ssl.size == 2 or @usersoptions.size > 0 or @ldap.size > 0 %>
   <%- end -%>
   <%- if @ssl.size == 2 -%>
     "ssl": {
       "certfile": "<%= @ssl['certfile']  %>",
       "keyfile": "<%= @ssl['keyfile']  %>"
-    }<%= ',' if @usersoptions.size > 0 %>
+    }<%= ',' if @usersoptions.size > 0 or @ldap.size > 0 %>
   <%- end -%>
   <%- if @usersoptions.size > 0 -%>
     "usersOptions": {
@@ -65,7 +65,61 @@
       "<%= k %>": "<%= v %>"<%= ',' if idx != (@usersoptions.size - 1) %>
       <%- end -%>
     <%- end -%>
-   }
+    }<%= ',' if @ldap.size > 0 %>
+  <%- end -%>
+  <%- if @ldap.size > 0 -%>
+    "ldap": {
+    <%- if @ldap.has_key?('debug') -%>
+      "debug": <%= @ldap.delete('debug') %>,
+    <%- end -%>
+    <%- if @ldap.has_key?('roles')
+      roles=@ldap.delete('roles') -%>
+      "roles": [
+      <%- roles.each_with_index do |role, roles_idx| -%>
+        {
+        <%- role.each_with_index do |(k,v), kv_idx| -%>
+          <%- if [true, false].include? v -%>
+          "<%= k %>": <%= v %><%= ',' if kv_idx != (role.size - 1) %>
+          <%- elsif v.kind_of?(Array) -%>
+          "<%= k %>": [
+            <%- v.each_with_index do |elem, array_idx| -%>
+            "<%= elem %>"<%= ',' if array_idx != (v.size - 1) %>
+            <%- end -%>
+          ]<%= ',' if kv_idx != (role.size - 1) %>
+          <%- else -%>
+          "<%= k %>": "<%= v %>"<%= ',' if kv_idx != (role.size - 1) %>
+          <%- end -%>
+        <%- end -%>
+        }<%= ',' if roles_idx != (roles.size - 1) %>
+      <%- end -%>
+      ],
+    <%- end -%>
+      "servers": [
+      <%- if @ldap.include? 'servers' -%>
+        <%- @ldap['servers'].each_with_index do |server, servers_idx| -%>
+        {
+        <%- server.each_with_index do |(k,v), kv_idx| -%>
+          <%- if [true, false].include? v -%>
+          "<%= k %>": <%= v %><%= ',' if kv_idx != (@ldap['servers'].size - 1) %>
+          <%- else -%>
+          "<%= k %>": "<%= v %>"<%= ',' if kv_idx != (@ldap['servers'].size - 1) %>
+          <%- end -%>
+        }<%= ',' if servers_idx != (@ldap['servers'].size - 1) %>
+        <%- end -%><%-# server.each |(k,v)| -%>
+        <%- end -%><%-# servers.each |server| -%>
+      <%- else -%>
+        {
+        <%- @ldap.each_with_index do |(k,v), idx| -%>
+          <%- if [true, false].include? v -%>
+          "<%= k %>": <%= v %><%= ',' if idx != (@ldap.size - 1) %>
+          <%- else -%>
+          "<%= k %>": "<%= v %>"<%= ',' if idx != (@ldap.size - 1) %>
+          <%- end -%>
+        <%- end -%>
+        }
+      <%- end -%>
+      ]
+    }
   <%- end -%>
   }
 }

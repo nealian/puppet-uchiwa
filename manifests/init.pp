@@ -133,6 +133,58 @@
 #    }
 #    ```
 #
+#  [*ldap*]
+#    Hash
+#    A hash containing the connection, mapping, and role properties for LDAP
+#    server authentication, mostly following https://docs.sensu.io/sensu-enterprise-dashboard/latest/rbac/rbac-for-ldap/
+#    Example:
+#    ```
+#    {
+#      'server'   => 'localhost',
+#      'port'     => 389,
+#      'basedn'   => 'ou=users,dc=example,dc=com',
+#    }
+#    ```
+#    A more complicated example:
+#    {
+#      'debug'   => true,
+#      'servers' => [
+#        {
+#          'server'        => 'ldap1.example.com',
+#          'port'          => 636,
+#          'security'      => 'tls',
+#          'insecure'      => true, # TODO: get trust-signed cert for ldap1.example.com
+#          'dialect'       => 'openldap',
+#          'basedn'        => 'ou=users,dc=example,dc=com',
+#          'userattribute' => 'uid',
+#          'binduser'      => 'cn=ldap-bind,ou=users,dc=example,dc=com'
+#          'bindpass'      => "it's a secret to everybody",
+#        },
+#        {
+#          'server'        => 'insecure-ldap.ad.example.com',
+#          'port'          => 389,
+#          'security'      => 'none',
+#          'basedn'        => 'cn=users,dc=ad,dc=example,dc=com',
+#          'userattribute' => 'sAMAccountName',
+#        },
+#      ],
+#      'roles'   => [
+#        {
+#          'name'     => 'admins',
+#          'members'  => [
+#            'datacenter_admins'
+#          ],
+#        },
+#        {
+#          'name'     => 'guests',
+#          'members'  => [
+#            'datacenter_guests'
+#          ],
+#          'readonly' => true
+#        }
+#      ]
+#    }
+#
 class uchiwa (
   $package_name         = $uchiwa::params::package_name,
   $service_name         = $uchiwa::params::service_name,
@@ -156,7 +208,8 @@ class uchiwa (
   $auth                 = $uchiwa::params::auth,
   $ssl                  = $uchiwa::params::ssl,
   $usersoptions         = $uchiwa::params::usersoptions,
-  $log_level            = $uchiwa::params::log_level
+  $log_level            = $uchiwa::params::log_level,
+  $ldap                 = $uchiwa::params::ldap,
 ) inherits uchiwa::params {
 
   # validate parameters here
@@ -182,6 +235,7 @@ class uchiwa (
   validate_hash($ssl)
   validate_hash($usersoptions)
   validate_re($log_level, 'trace|debug|info|warn|fatal')
+  validate_hash($ldap)
 
   anchor { 'uchiwa::begin': }
   -> class { 'uchiwa::install': }

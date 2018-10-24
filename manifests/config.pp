@@ -9,6 +9,6 @@ class uchiwa::config inherits uchiwa {
     content => template('uchiwa/etc/sensu/uchiwa.json.erb'),
     owner   => uchiwa,
     group   => uchiwa,
-    mode    => '0440',
+    mode    => '0444',
   }
 }

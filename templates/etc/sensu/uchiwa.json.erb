@@ -99,7 +99,7 @@
         <%- @ldap['servers'].each_with_index do |server, servers_idx| -%>
         {
         <%- server.each_with_index do |(k,v), kv_idx| -%>
-          <%- if [true, false].include? v -%>
+          <%- if [true, false].include? v or v.kind_of?(Numeric) -%>
           "<%= k %>": <%= v %><%= ',' if kv_idx != (@ldap['servers'].size - 1) %>
           <%- else -%>
           "<%= k %>": "<%= v %>"<%= ',' if kv_idx != (@ldap['servers'].size - 1) %>
@@ -110,7 +110,7 @@
       <%- else -%>
         {
         <%- @ldap.each_with_index do |(k,v), idx| -%>
-          <%- if [true, false].include? v -%>
+          <%- if [true, false].include? v or v.kind_of?(Numeric) -%>
           "<%= k %>": <%= v %><%= ',' if idx != (@ldap.size - 1) %>
           <%- else -%>
           "<%= k %>": "<%= v %>"<%= ',' if idx != (@ldap.size - 1) %>
